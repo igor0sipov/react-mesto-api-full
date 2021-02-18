@@ -15,7 +15,7 @@ module.exports.addCard = (req, res) => {
   const { name, link } = req.body;
   User.findById(req.user._id)
     .then((owner) => {
-      Card.create({ name, link, owner })
+      Card.create([{ name, link, owner }], { runValidators: true })
         .then((card) => {
           res.send(card);
         })
@@ -37,11 +37,18 @@ module.exports.addCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndDelete({ _id: req.params.cardId })
+  Card.findById(req.params.cardId)
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (card === null) {
         res.status(404).send({ message: 'Карточка не найдена' });
       }
+      if (req.user._id !== card.owner.toString()) {
+        res.status(403).send({ message: 'Нельзя удалять чужие карточки' });
+      } else {
+        return Card.deleteOne({ _id: card._id }).then(() => card);
+      }
+    }).then((card) => {
       res.send(card);
     })
     .catch(() => {

@@ -12,6 +12,8 @@ module.exports.login = (req, res) => {
         { expiresIn: '7d' },
       );
 
+      res.send({ message: 'Всё верно' });
+
       res.cookie(
         'token', token, {
           maxAge: 3600000 * 24 * 7,

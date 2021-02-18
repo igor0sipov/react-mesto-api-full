@@ -42,16 +42,24 @@ module.exports.createUser = (req, res) => {
     email, password, name, about, avatar,
   } = req.body;
 
-  bcrypt.hash(password, 10).then((hashedPassword) => User.create({
-    email,
-    password: hashedPassword,
-    name,
-    about,
-    avatar,
-  })).then((user) => {
-    res.send(user);
-  })
+  bcrypt.hash(password, 10)
+    .then((hashedPassword) => User.init().then(() => User.create([{
+      email,
+      password: hashedPassword,
+      name,
+      about,
+      avatar,
+    }],
+    {
+      runValidators: false,
+    }))
+      .then((user) => {
+        res.send(user[0]);
+      }))
     .catch((err) => {
+      if (err.message.startsWith('E11000')) {
+        res.status(400).send({ message: 'Пользователь с таким email уже существует' });
+      }
       if (err.errors.name && err.errors.name.name === 'ValidatorError') {
         res.status(400).send({ message: err.message });
       }
@@ -61,9 +69,16 @@ module.exports.createUser = (req, res) => {
       if (err.errors.avatar && err.errors.avatar.name === 'ValidatorError') {
         res.status(400).send({ message: err.message });
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      res.status(500).send({ message: err.message });
     });
 };
+
+// Для указания опции валидации email при создании пользователь объект пользователя обернут в массив
+// src: https://mongoosejs.com/docs/api.html#model_Model.create;
+
+// User.init() добавлено для корректного срабатывания unique
+// src: https://luxiyalu.com/mongoose-unique-not-working/;
+// без этого пользователи добавлялись без проверки уникальности email
 
 module.exports.editUserInfo = (req, res) => {
   const { name, about } = req.body;
@@ -110,7 +125,7 @@ module.exports.editUserAvatar = (req, res) => {
       }
       res.send(me);
     })
-    .catch(() => {
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
     });
 };
