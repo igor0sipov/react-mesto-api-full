@@ -14,14 +14,12 @@ module.exports.getCurrentUser = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.getAllUsers = (req, res) => {
+module.exports.getAllUsers = (req, res, next) => {
   User.find({})
     .then((userList) => {
       res.send(userList);
     })
-    .catch(() => {
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    .catch(next);
 };
 
 module.exports.getSpecificUser = (req, res, next) => {
