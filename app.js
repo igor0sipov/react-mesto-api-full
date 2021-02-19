@@ -4,8 +4,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const cards = require('./backend/routes/cards.js');
 const users = require('./backend/routes/users.js');
-const { login } = require('./backend/controllers/login.js');
-const { createUser } = require('./backend/controllers/users.js');
+const { createUser, login } = require('./backend/controllers/users.js');
 const auth = require('./backend/middlewares/auth.js');
 
 const { PORT = 3000 } = process.env;
