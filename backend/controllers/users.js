@@ -77,7 +77,7 @@ module.exports.createUser = (req, res, next) => {
 // src: https://luxiyalu.com/mongoose-unique-not-working/;
 // без этого пользователи добавлялись без проверки уникальности email
 
-module.exports.editUserInfo = (req, res) => {
+module.exports.editUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -89,20 +89,17 @@ module.exports.editUserInfo = (req, res) => {
     },
   )
     .then((me) => {
-      if (me === null) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      }
       res.send(me);
     })
     .catch((err) => {
       if (err.errors.name && err.errors.name.name === 'ValidatorError') {
-        res.status(400).send({ message: err.message });
+        throw new BadRequestError(err.message);
       }
       if (err.errors.about && err.errors.about.name === 'ValidatorError') {
-        res.status(400).send({ message: err.message });
+        throw new BadRequestError(err.message);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
 module.exports.editUserAvatar = (req, res) => {
