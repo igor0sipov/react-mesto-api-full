@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 const NotFoundError = require('../errors/not-found-error');
+const BadRequestError = require('../errors/bad-request-error');
 
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
@@ -33,7 +34,7 @@ module.exports.getSpecificUser = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     email, password, name, about, avatar,
   } = req.body;
@@ -54,19 +55,19 @@ module.exports.createUser = (req, res) => {
       }))
     .catch((err) => {
       if (err.message.startsWith('E11000')) {
-        res.status(400).send({ message: 'Пользователь с таким email уже существует' });
+        throw new BadRequestError('Пользователь с таким email уже существует');
       }
       if (err.errors.name && err.errors.name.name === 'ValidatorError') {
-        res.status(400).send({ message: err.message });
+        throw new BadRequestError(err.message);
       }
       if (err.errors.about && err.errors.about.name === 'ValidatorError') {
-        res.status(400).send({ message: err.message });
+        throw new BadRequestError(err.message);
       }
       if (err.errors.avatar && err.errors.avatar.name === 'ValidatorError') {
-        res.status(400).send({ message: err.message });
+        throw new BadRequestError(err.message);
       }
-      res.status(500).send({ message: err.message });
-    });
+    })
+    .catch(next);
 };
 
 // Для указания опции валидации email при создании пользователь объект пользователя обернут в массив
