@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
+const NotFoundError = require('../errors/not-found-error');
 
 module.exports.getCurrentUser = (req, res) => {
   User.findById(req.user._id)
@@ -25,17 +26,15 @@ module.exports.getAllUsers = (req, res) => {
     });
 };
 
-module.exports.getSpecificUser = (req, res) => {
+module.exports.getSpecificUser = (req, res, next) => {
   User.findById(req.params.id)
     .then((user) => {
-      if (user === null) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      }
       res.send(user);
     })
     .catch(() => {
-      res.status(400).send({ message: 'id введен некорректно' });
-    });
+      throw new NotFoundError('Нет пользователя с таким id');
+    })
+    .catch(next);
 };
 
 module.exports.createUser = (req, res) => {
