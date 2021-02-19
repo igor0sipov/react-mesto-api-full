@@ -3,17 +3,15 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 const NotFoundError = require('../errors/not-found-error');
 
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((currentUser) => {
-      if (currentUser === null) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      }
       res.send(currentUser);
     })
     .catch(() => {
-      res.status(400).send({ message: 'id введен некорректно' });
-    });
+      throw new NotFoundError('Нет пользователя с таким id');
+    })
+    .catch(next);
 };
 
 module.exports.getAllUsers = (req, res) => {
