@@ -38,9 +38,6 @@ module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     // eslint-disable-next-line consistent-return
     .then((card) => {
-      if (card === null) {
-        throw new NotFoundError('Карточка не найдена');
-      }
       if (req.user._id !== card.owner.toString()) {
         throw new ForbiddenError('Нельзя удалять чужие карточки');
       } else {
@@ -55,7 +52,7 @@ module.exports.deleteCard = (req, res, next) => {
       return (next(err));
     })
     .catch(() => {
-      throw new BadRequestError('Карточки с таким id не найдено');
+      throw new BadRequestError('Карточка с таким id не найдена');
     })
     .catch(next);
 };
@@ -67,35 +64,25 @@ module.exports.like = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (card === null) {
-        throw new NotFoundError('Карточка не найдена');
-      }
       res.send(card);
-    }).catch((err) => {
-      if (!err.statusCode) {
-        throw new Error();
-      }
-      return (next(err));
     })
-
     .catch(() => {
-      res.status(400).send({ message: 'id введен некорректно' });
-    });
+      throw new BadRequestError('Карточка с таким id не найдена');
+    })
+    .catch(next);
 };
 
-module.exports.deleteLike = (req, res) => {
+module.exports.deleteLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
     .then((card) => {
-      if (card === null) {
-        res.status(404).send({ message: 'Карточка не найдена' });
-      }
       res.send(card);
     })
     .catch(() => {
-      res.status(400).send({ message: 'id введен некорректно' });
-    });
+      throw new BadRequestError('Карточка с таким id не найдена');
+    })
+    .catch(next);
 };
