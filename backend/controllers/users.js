@@ -124,7 +124,7 @@ module.exports.editUserAvatar = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   const { NODE_ENV, JWT_SECRET } = process.env;
   return User.findUserByCredentials(email, password)
@@ -135,17 +135,16 @@ module.exports.login = (req, res) => {
         { expiresIn: '7d' },
       );
 
-      res.send({ message: 'Всё верно' });
-
       res.cookie(
         'token', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
           sameSite: true,
         },
-      ).end();
+      ).send({ message: 'Всё верно' }).end();
     })
     .catch((err) => {
       throw new UnauthorizedError(err.message);
-    });
+    })
+    .catch(next);
 };

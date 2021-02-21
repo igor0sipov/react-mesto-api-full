@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
+const { Joi, celebrate, errors } = require('celebrate');
 const cards = require('./backend/routes/cards.js');
 const users = require('./backend/routes/users.js');
 const { createUser, login } = require('./backend/controllers/users.js');
@@ -20,8 +21,22 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use(express.json());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().min(2).max(60),
+    password: Joi.string().required().min(8).max(32),
+  }),
+}), login);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().min(2).max(60),
+    password: Joi.string().required().min(8).max(32),
+    name: Joi.string().min(2).max(32),
+    about: Joi.string().min(2).max(32),
+    avatar: Joi.string(),
+  }),
+}), createUser);
 
 app.use(auth);
 
@@ -31,6 +46,8 @@ app.use('/', users);
 app.use('*', (req, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
 });
+
+app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;

@@ -1,7 +1,6 @@
 const User = require('../models/users');
 const Card = require('../models/cards');
 const BadRequestError = require('../errors/bad-request-error');
-const UnauthorizedError = require('../errors/unauthorized-error');
 const ForbiddenError = require('../errors/forbidden-error');
 const NotFoundError = require('../errors/not-found-error');
 
@@ -16,20 +15,18 @@ module.exports.getAllCards = (req, res, next) => {
 module.exports.addCard = (req, res, next) => {
   const { name, link } = req.body;
   User.findById(req.user._id)
-    .then((owner) => {
-      Card.create([{ name, link, owner }], { runValidators: true })
-        .then((card) => {
-          res.send(card);
-        })
-        .catch((err) => {
-          if (err.errors.name && err.errors.name.name === 'ValidatorError') {
-            throw new NotFoundError(err.message);
-          }
+    .then((owner) => Card.create([{ name, link, owner }], { runValidators: true }))
+    .then((card) => {
+      res.send(card);
+    })
+    .catch((err) => {
+      if (err.errors.name && err.errors.name.name === 'ValidatorError') {
+        throw new BadRequestError(err.message);
+      }
 
-          if (err.errors.link && err.errors.link.name === 'ValidatorError') {
-            throw new NotFoundError(err.message);
-          }
-        });
+      if (err.errors.link && err.errors.link.name === 'ValidatorError') {
+        throw new BadRequestError(err.message);
+      }
     })
     .catch(next);
 };
@@ -52,7 +49,7 @@ module.exports.deleteCard = (req, res, next) => {
       return (next(err));
     })
     .catch(() => {
-      throw new BadRequestError('Карточка с таким id не найдена');
+      throw new NotFoundError('Карточка с таким id не найдена');
     })
     .catch(next);
 };
@@ -67,7 +64,7 @@ module.exports.like = (req, res, next) => {
       res.send(card);
     })
     .catch(() => {
-      throw new BadRequestError('Карточка с таким id не найдена');
+      throw new NotFoundError('Карточка с таким id не найдена');
     })
     .catch(next);
 };
@@ -82,7 +79,7 @@ module.exports.deleteLike = (req, res, next) => {
       res.send(card);
     })
     .catch(() => {
-      throw new BadRequestError('Карточка с таким id не найдена');
+      throw new NotFoundError('Карточка с таким id не найдена');
     })
     .catch(next);
 };
