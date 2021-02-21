@@ -1,8 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
-const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
+const NotFoundError = require('../errors/not-found-error');
 
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
@@ -102,7 +103,7 @@ module.exports.editUserInfo = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.editUserAvatar = (req, res) => {
+module.exports.editUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -114,14 +115,13 @@ module.exports.editUserAvatar = (req, res) => {
     },
   )
     .then((me) => {
-      if (me === null) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      }
       res.send(me);
+    }).catch((err) => {
+      if (err.errors.avatar && err.errors.avatar.name === 'ValidatorError') {
+        throw new BadRequestError(err.message);
+      }
     })
-    .catch((err) => {
-      res.status(500).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 module.exports.login = (req, res) => {
@@ -146,8 +146,6 @@ module.exports.login = (req, res) => {
       ).end();
     })
     .catch((err) => {
-      res
-        .status(401)
-        .send({ message: err.message });
+      throw new UnauthorizedError(err.message);
     });
 };

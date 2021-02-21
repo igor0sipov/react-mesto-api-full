@@ -1,17 +1,19 @@
 const User = require('../models/users');
 const Card = require('../models/cards');
+const BadRequestError = require('../errors/bad-request-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
+const ForbiddenError = require('../errors/forbidden-error');
+const NotFoundError = require('../errors/not-found-error');
 
-module.exports.getAllCards = (req, res) => {
+module.exports.getAllCards = (req, res, next) => {
   Card.find({})
     .then((userList) => {
       res.send(userList);
     })
-    .catch(() => {
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    .catch(next);
 };
 
-module.exports.addCard = (req, res) => {
+module.exports.addCard = (req, res, next) => {
   const { name, link } = req.body;
   User.findById(req.user._id)
     .then((owner) => {
@@ -21,39 +23,41 @@ module.exports.addCard = (req, res) => {
         })
         .catch((err) => {
           if (err.errors.name && err.errors.name.name === 'ValidatorError') {
-            res.status(400).send({ message: err.message });
+            throw new NotFoundError(err.message);
           }
 
           if (err.errors.link && err.errors.link.name === 'ValidatorError') {
-            res.status(400).send({ message: err.message });
+            throw new NotFoundError(err.message);
           }
-
-          res.send({ message: err });
         });
     })
-    .catch(() => {
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    .catch(next);
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     // eslint-disable-next-line consistent-return
     .then((card) => {
       if (card === null) {
-        res.status(404).send({ message: 'Карточка не найдена' });
+        throw new NotFoundError('Карточка не найдена');
       }
       if (req.user._id !== card.owner.toString()) {
-        res.status(403).send({ message: 'Нельзя удалять чужие карточки' });
+        throw new ForbiddenError('Нельзя удалять чужие карточки');
       } else {
         return Card.deleteOne({ _id: card._id }).then(() => card);
       }
     }).then((card) => {
       res.send(card);
+    }).catch((err) => {
+      if (!err.statusCode) {
+        throw new Error();
+      }
+      return (next(err));
     })
     .catch(() => {
-      res.status(400).send({ message: 'id введен некорректно' });
-    });
+      throw new BadRequestError('Карточки с таким id не найдено');
+    })
+    .catch(next);
 };
 
 module.exports.like = (req, res) => {
