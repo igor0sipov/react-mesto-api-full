@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const { Joi, celebrate, errors } = require('celebrate');
+const { requestLogger, errorLogger } = require('./backend/middlewares/logger');
+
 const cards = require('./backend/routes/cards.js');
 const users = require('./backend/routes/users.js');
 const { createUser, login } = require('./backend/controllers/users.js');
@@ -20,6 +22,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use(express.json());
+
+app.use(requestLogger);
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -46,6 +50,8 @@ app.use('/', users);
 app.use('*', (req, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 
