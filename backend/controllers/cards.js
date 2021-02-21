@@ -60,7 +60,7 @@ module.exports.deleteCard = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.like = (req, res) => {
+module.exports.like = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -68,9 +68,14 @@ module.exports.like = (req, res) => {
   )
     .then((card) => {
       if (card === null) {
-        res.status(404).send({ message: 'Карточка не найдена' });
+        throw new NotFoundError('Карточка не найдена');
       }
       res.send(card);
+    }).catch((err) => {
+      if (!err.statusCode) {
+        throw new Error();
+      }
+      return (next(err));
     })
 
     .catch(() => {
