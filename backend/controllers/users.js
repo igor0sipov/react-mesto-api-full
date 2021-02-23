@@ -141,7 +141,10 @@ module.exports.login = (req, res, next) => {
           httpOnly: true,
           sameSite: true,
         },
-      ).send({ jwt: token }).end();
+      ).send({
+        email,
+        token,
+      }).end();
     })
     .catch((err) => {
       throw new UnauthorizedError(err.message);
