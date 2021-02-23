@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { Joi, celebrate, errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./backend/middlewares/logger');
-
 const cards = require('./backend/routes/cards.js');
 const users = require('./backend/routes/users.js');
 const { createUser, login } = require('./backend/controllers/users.js');
@@ -20,6 +20,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useCreateIndex: true,
   useFindAndModify: false,
 });
+
+app.use(cors());
 
 app.use(express.json());
 
