@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   about: {
     type: String,
     minlength: 2,
-    maxlength: 30,
+    maxlength: 32,
     default: 'Исследователь',
   },
   avatar: {

@@ -7,8 +7,9 @@ const { Joi, celebrate, errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./backend/middlewares/logger');
 const cards = require('./backend/routes/cards.js');
 const users = require('./backend/routes/users.js');
-const { createUser, login } = require('./backend/controllers/users.js');
+const { createUser, login, signout } = require('./backend/controllers/users.js');
 const auth = require('./backend/middlewares/auth.js');
+const NotFoundError = require('./backend/errors/not-found-error');
 
 const { PORT = 3000 } = process.env;
 
@@ -54,8 +55,10 @@ app.use(auth);
 app.use('/', cards);
 app.use('/', users);
 
-app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+app.post('/signout', signout);
+
+app.use('*', () => {
+  throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
 
 app.use(errorLogger);

@@ -17,7 +17,7 @@ module.exports.addCard = (req, res, next) => {
   User.findById(req.user._id)
     .then((owner) => Card.create([{ name, link, owner }], { runValidators: true }))
     .then((card) => {
-      res.send(card);
+      res.send(card[0]);
     })
     .catch((err) => {
       if (err.errors.name && err.errors.name.name === 'ValidatorError') {

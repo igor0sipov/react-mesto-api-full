@@ -40,17 +40,23 @@ module.exports.createUser = (req, res, next) => {
     email, password, name, about, avatar,
   } = req.body;
 
-  bcrypt.hash(password, 10)
-    .then((hashedPassword) => User.init().then(() => User.create([{
-      email,
-      password: hashedPassword,
-      name,
-      about,
-      avatar,
-    }],
-    {
-      runValidators: false,
-    }))
+  bcrypt
+    .hash(password, 10)
+    .then((hashedPassword) => User.init()
+      .then(() => User.create(
+        [
+          {
+            email,
+            password: hashedPassword,
+            name,
+            about,
+            avatar,
+          },
+        ],
+        {
+          runValidators: false,
+        },
+      ))
       .then((user) => {
         res.send(user[0]);
       }))
@@ -116,7 +122,8 @@ module.exports.editUserAvatar = (req, res, next) => {
   )
     .then((me) => {
       res.send(me);
-    }).catch((err) => {
+    })
+    .catch((err) => {
       if (err.errors.avatar && err.errors.avatar.name === 'ValidatorError') {
         throw new BadRequestError(err.message);
       }
@@ -131,23 +138,32 @@ module.exports.login = (req, res, next) => {
     .then((user) => {
       const token = jwt.sign(
         { _id: user._id },
-        NODE_ENV === 'production' ? JWT_SECRET : '3fbb822da62a2282bd5b427156bf28502e59044bf2ad076d0bbd9a214a54b145',
+        NODE_ENV === 'production'
+          ? JWT_SECRET
+          : '3fbb822da62a2282bd5b427156bf28502e59044bf2ad076d0bbd9a214a54b145',
         { expiresIn: '7d' },
       );
 
-      res.cookie(
-        'token', token, {
+      res
+        .cookie('token', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
-          sameSite: false,
-        },
-      ).send({
-        email,
-        token,
-      }).end();
+          sameSite: true,
+        })
+        .send({ message: 'Успешно!' })
+        .end();
     })
     .catch((err) => {
       throw new UnauthorizedError(err.message);
     })
     .catch(next);
+};
+
+module.exports.signout = (req, res) => {
+  try {
+    res.clearCookie('token');
+  } catch (error) {
+    throw new BadRequestError(error);
+  }
+  return res.send({ message: 'Успешно!' });
 };
