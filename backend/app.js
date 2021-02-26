@@ -14,6 +14,22 @@ const NotFoundError = require('./errors/not-found-error');
 const { PORT = 3000 } = process.env;
 
 const app = express();
+
+const allowedUrls = [
+  'http://mesto.fakealien.students.nomoreparties.space',
+  'https://mesto.fakealien.students.nomoreparties.space',
+  'http://www.mesto.fakealien.students.nomoreparties.space',
+  'https://www.mesto.fakealien.students.nomoreparties.space',
+];
+const corsOptions = {
+  origin: allowedUrls,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Access-Control-Allow-Headers', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 app.use(cookieParser());
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
@@ -21,15 +37,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useCreateIndex: true,
   useFindAndModify: false,
 });
-
-const corsOptions = {
-  origin: /https?:\/\/(www\.)?mesto\.fakealien\.students\.nomoreparties\.space/gi,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
 
 app.use(express.json());
 
