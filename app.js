@@ -23,7 +23,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 const corsOptions = {
-  origin: '*',
+  origin: 'https://mesto.fakealien.students.nomoreparties.space',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
   credentials: true,
