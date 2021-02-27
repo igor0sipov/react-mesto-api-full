@@ -4,6 +4,7 @@ const User = require('../models/users');
 const BadRequestError = require('../errors/bad-request-error');
 const UnauthorizedError = require('../errors/unauthorized-error');
 const NotFoundError = require('../errors/not-found-error');
+const ConflictError = require('../errors/conflict-error');
 
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
@@ -26,7 +27,11 @@ module.exports.getAllUsers = (req, res, next) => {
 
 module.exports.getSpecificUser = (req, res, next) => {
   User.findById(req.params.id)
+    // eslint-disable-next-line consistent-return
     .then((user) => {
+      if (user === null) {
+        return next(new NotFoundError('Такой пользователь не найден'));
+      }
       res.send(user);
     })
     .catch(() => {
@@ -42,27 +47,32 @@ module.exports.createUser = (req, res, next) => {
 
   bcrypt
     .hash(password, 10)
-    .then((hashedPassword) => User.init()
-      .then(() => User.create(
-        [
-          {
-            email,
-            password: hashedPassword,
-            name,
-            about,
-            avatar,
-          },
-        ],
+    .then((hashedPassword) => {
+      User.init();
+      return hashedPassword;
+    })
+    .then((hashedPassword) => User.create(
+      [
         {
-          runValidators: false,
+          email,
+          password: hashedPassword,
+          name,
+          about,
+          avatar,
         },
-      ))
-      .then((user) => {
-        res.send(user[0]);
-      }))
+      ],
+      {
+        runValidators: true,
+      },
+    ))
+    .then((user) => {
+      res.send({
+        email: user[0].email, name: user[0].name, about: user[0].about, avatar: user[0].avatar,
+      });
+    })
     .catch((err) => {
       if (err.message.startsWith('E11000')) {
-        throw new BadRequestError('Пользователь с таким email уже существует');
+        throw new ConflictError('Пользователь с таким email уже существует');
       }
       if (err.errors.name && err.errors.name.name === 'ValidatorError') {
         throw new BadRequestError(err.message);
@@ -149,7 +159,7 @@ module.exports.login = (req, res, next) => {
         .cookie('token', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
-          sameSite: 'none',
+          sameSite: true,
         })
         .send({ message: 'Успешно!' })
         .end();

@@ -60,11 +60,12 @@ module.exports.like = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    // eslint-disable-next-line consistent-return
     .then((card) => {
+      if (card === null) {
+        return next(new NotFoundError('Такая карточка не найдена'));
+      }
       res.send(card);
-    })
-    .catch(() => {
-      throw new NotFoundError('Карточка с таким id не найдена');
     })
     .catch(next);
 };
@@ -75,11 +76,12 @@ module.exports.deleteLike = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    // eslint-disable-next-line consistent-return
     .then((card) => {
+      if (card === null) {
+        return next(new NotFoundError('Такая карточка не найдена'));
+      }
       res.send(card);
-    })
-    .catch(() => {
-      throw new NotFoundError('Карточка с таким id не найдена');
     })
     .catch(next);
 };
