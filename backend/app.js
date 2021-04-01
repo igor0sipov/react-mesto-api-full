@@ -16,10 +16,10 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 const allowedUrls = [
-  'http://mesto.fakealien.students.nomoreparties.space',
-  'https://mesto.fakealien.students.nomoreparties.space',
-  'http://www.mesto.fakealien.students.nomoreparties.space',
-  'https://www.mesto.fakealien.students.nomoreparties.space',
+  'http://mesto.fakealien.students.nomoredomains.icu',
+  'https://mesto.fakealien.students.nomoredomains.icu',
+  'http://www.mesto.fakealien.students.nomoredomains.icu',
+  'https://www.mesto.fakealien.students.nomoredomains.icu',
 ];
 const corsOptions = {
   origin: allowedUrls,
