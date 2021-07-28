@@ -11,7 +11,7 @@ const { createUser, login, signout } = require('./controllers/users.js');
 const auth = require('./middlewares/auth.js');
 const NotFoundError = require('./errors/not-found-error');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 5000 } = process.env;
 
 const app = express();
 
