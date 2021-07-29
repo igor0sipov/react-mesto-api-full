@@ -16,10 +16,7 @@ const { PORT = 5000 } = process.env;
 const app = express();
 
 const allowedUrls = [
-  'http://mesto.fakealien.students.nomoredomains.icu',
-  'https://mesto.fakealien.students.nomoredomains.icu',
-  'http://www.mesto.fakealien.students.nomoredomains.icu',
-  'https://www.mesto.fakealien.students.nomoredomains.icu',
+  'http://localhost:3000',
 ];
 const corsOptions = {
   origin: allowedUrls,
